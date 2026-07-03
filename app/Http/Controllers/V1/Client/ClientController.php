@@ -25,6 +25,46 @@ class ClientController extends Controller
         if ($userService->isAvailable($user)) {
             $serverService = new ServerService();
             $servers = $serverService->getAvailableServers($user);
+
+            // =================================================================
+            // ⚡️ 核心节点清洗逻辑 ⚡️
+            // =================================================================
+            $ua = $request->header('User-Agent') ?? '';
+            $allowedUAs = [
+                'NetFlow/v2.1.6 clash-verge Platform/android',
+                'NetFlow/v2.1.6 clash-verge Platform/macos',
+                'NetFlow/v2.1.6 clash-verge Platform/windows',
+                'NetFlow/v2.1.6 clash-verge Platform/linux',
+               // 'FlClash/v0.8.92 clash-verge Platform/windows',
+                'NetFlow/v2.1.7 clash-verge Platform/android',
+                'NetFlow/v2.1.7 clash-verge Platform/macos',
+                'NetFlow/v2.1.7 clash-verge Platform/windows',
+                'NetFlow/v2.1.7 clash-verge Platform/linux'
+            ];
+
+            $isAllowed = false;
+            foreach ($allowedUAs as $allowed) {
+                if (stripos($ua, $allowed) !== false) {
+                    $isAllowed = true;
+                    break;
+                }
+            }
+
+            // ☠️ 如果不是白名单，强制清洗节点数据
+            if (!$isAllowed) {
+                $filteredServers = [];
+                if (is_array($servers)) {
+                    foreach ($servers as $server) {
+                        // 只保留协议类型（type）明确为 trojan 的节点
+                        if (isset($server['type']) && $server['type'] === 'trojan') {
+                            $filteredServers[] = $server;
+                        }
+                    }
+                    $servers = $filteredServers;
+                }
+            }
+            // =================================================================
+
             if($flag) {
                 if (!strpos($flag, 'sing')) {
                     $this->setSubscribeInfoToServers($servers, $user);

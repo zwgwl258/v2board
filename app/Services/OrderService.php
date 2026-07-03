@@ -253,7 +253,7 @@ class OrderService
         $order->surplus_amount = max($orderSurplusAmount, 0);
         $order->surplus_order_ids = array_column($orders, 'id');
     }
-
+ /* 
     public function paid(string $callbackNo)
     {
         $order = $this->order;
@@ -268,7 +268,60 @@ class OrderService
             return false;
         }
         return true;
+    }*/
+
+
+   //处理用户取消订单后回调逻辑
+    public function paid(string $callbackNo)
+{
+    $order = $this->order;
+    $userService = new UserService();
+
+    if ($order->status === 0) {
+        // 未支付，正常处理
+    } elseif ($order->status === 2) {
+        // 已取消，判断创建时间和当前时间差
+        if ((time() - $order->created_at) > 1800) {
+            // 超过300秒，不再处理
+            return true;
+        }
+
+        // 👇 新增：判断是否需要再次扣除余额
+        if ($order->balance_amount > 0) {
+            $user = \App\Models\User::find($order->user_id);
+            if (!$userService->addBalance($order->user_id, -$order->balance_amount)) {
+                return false; // 扣除余额失败，不处理
+            }
+        }
+
+        // 继续处理已取消但仍在时间窗口内的支付
+    } else {
+        // 其他状态直接返回 true，表示已经处理过了
+        return true;
     }
+
+    // 正常更新为已支付状态
+    $order->status = 1;
+    $order->paid_at = time();
+    $order->callback_no = $callbackNo;
+
+    if (!$order->save()) {
+        return false;
+    }
+
+    try {
+        OrderHandleJob::dispatch($order->trade_no);
+    } catch (\Exception $e) {
+        return false;
+    }
+
+    return true;
+}
+
+
+
+
+
 
     public function cancel():bool
     {
