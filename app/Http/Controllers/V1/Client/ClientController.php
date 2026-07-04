@@ -26,7 +26,7 @@ class ClientController extends Controller
             $serverService = new ServerService();
             $servers = $serverService->getAvailableServers($user);
 
-            // =================================================================
+// =================================================================
             // ⚡️ 核心节点清洗逻辑 ⚡️
             // =================================================================
             $ua = $request->header('User-Agent') ?? '';
@@ -36,19 +36,17 @@ class ClientController extends Controller
                 'NetFlow/v2.1.6 clash-verge Platform/windows',
                 'NetFlow/v2.1.6 clash-verge Platform/linux',
                // 'FlClash/v0.8.92 clash-verge Platform/windows',
+                'clash-verge1YZqFeBpB8IAwJNBWah8sTgu8shfz8/v3.1.5',
                 'NetFlow/v2.1.7 clash-verge Platform/android',
                 'NetFlow/v2.1.7 clash-verge Platform/macos',
                 'NetFlow/v2.1.7 clash-verge Platform/windows',
                 'NetFlow/v2.1.7 clash-verge Platform/linux'
             ];
 
-            $isAllowed = false;
-            foreach ($allowedUAs as $allowed) {
-                if (stripos($ua, $allowed) !== false) {
-                    $isAllowed = true;
-                    break;
-                }
-            }
+            // 🔒 【已修改：使用原生 in_array 严格模式】
+            // 一字不差、大小写完全一致才能通过
+            $isAllowed = in_array($ua, $allowedUAs, true);
+
 
             // ☠️ 如果不是白名单，强制清洗节点数据
             if (!$isAllowed) {
