@@ -44,7 +44,7 @@ class Client
             'NetFlow/v2.1.6 clash-verge Platform/macos',
             'NetFlow/v2.1.6 clash-verge Platform/windows',
             'NetFlow/v2.1.6 clash-verge Platform/linux',
-            //'clash-verge1YZqFeBpB8IAwJNBWah8sTgu8shfz8/v3.1.5',
+            'clash-verge1YZqFeBpB8IAwJNBWah8sTgu8shfz8/v3.1.5',
             'NetFlow/v2.1.7 clash-verge Platform/android',
             'NetFlow/v2.1.7 clash-verge Platform/macos',
             'NetFlow/v2.1.7 clash-verge Platform/windows',
