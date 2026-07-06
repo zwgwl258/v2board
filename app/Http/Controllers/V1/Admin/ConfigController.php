@@ -153,7 +153,9 @@ class ConfigController extends Controller
                 'macos_version' => config('v2board.macos_version'),
                 'macos_download_url' => config('v2board.macos_download_url'),
                 'android_version' => config('v2board.android_version'),
-                'android_download_url' => config('v2board.android_download_url')
+                'android_download_url' => config('v2board.android_download_url'),
+                'client_ua_ios' => config('v2board.client_ua_ios', ''),
+                'client_ua' => config('v2board.client_ua', '')
             ],
             'safe' => [
                 'email_verify' => (int)config('v2board.email_verify', 0),
@@ -191,13 +193,12 @@ class ConfigController extends Controller
         $data = $request->validated();
         $config = config('v2board');
         foreach (ConfigSave::RULES as $k => $v) {
-            if (!in_array($k, array_keys(ConfigSave::RULES))) {
-                unset($config[$k]);
-                continue;
-            }
             if (array_key_exists($k, $data)) {
                 $config[$k] = $data[$k];
             }
+        }
+        foreach (['client_ua_android', 'client_ua_windows', 'client_ua_macos'] as $k) {
+            unset($config[$k]);
         }
         $data = var_export($config, 1);
         if (!File::put(base_path() . '/config/v2board.php', "<?php\n return $data ;")) {

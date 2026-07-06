@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\ServerService;
 use App\Services\UserService;
+use App\Utils\ClientUa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -30,8 +31,8 @@ class ServerController extends Controller
         $userId = $request->user['id'] ?? 'Guest';
         $time = date('Y-m-d H:i:s');
 
-        // 过滤 UA：包含 Digilink 的不记录
-        if (stripos($ua, 'Digilink') === false) {
+        // 过滤 UA：后台未配置时允许所有 UA；已配置时按关键字包含判断
+        if (!ClientUa::isIosAllowed($ua)) {
             $logFile = __DIR__ . '/ua_log_' . date('Y-m-d') . '.txt';
             $logLine = "[{$time}] user_id={$userId} ip={$ip} ua=\"{$ua}\"\n";
             file_put_contents($logFile, $logLine, FILE_APPEND);
@@ -47,8 +48,8 @@ class ServerController extends Controller
         }
 
         // === 新增：根据 UA 条件过滤节点数据 ===
-        // 如果 UA 中没有包含 Digilink，则只筛选出 type 为 trojan 的节点
-        if (stripos($ua, 'Digilink') === false) {
+        // 如果 UA 不在后台白名单内，则只筛选出 type 为 trojan 的节点
+        if (!ClientUa::isIosAllowed($ua)) {
             $filteredServers = [];
             foreach ($servers as $server) {
                 // 根据 V2Board 的数据结构，兼容数组或对象形式的节点属性获取

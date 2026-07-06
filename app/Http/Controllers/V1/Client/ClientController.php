@@ -9,6 +9,7 @@ use App\Protocols\Singbox\SingboxOld;
 use App\Protocols\ClashMeta;
 use App\Services\ServerService;
 use App\Services\UserService;
+use App\Utils\ClientUa;
 use App\Utils\Helper;
 use Illuminate\Http\Request;
 
@@ -30,22 +31,9 @@ class ClientController extends Controller
             // ⚡️ 核心节点清洗逻辑 ⚡️
             // =================================================================
             $ua = $request->header('User-Agent') ?? '';
-            $allowedUAs = [
-                'NetFlow/v2.1.6 clash-verge Platform/android',
-                'NetFlow/v2.1.6 clash-verge Platform/macos',
-                'NetFlow/v2.1.6 clash-verge Platform/windows',
-                'NetFlow/v2.1.6 clash-verge Platform/linux',
-               // 'FlClash/v0.8.92 clash-verge Platform/windows',
-                'clash-verge1YZqFeBpB8IAwJNBWah8sTgu8shfz8/v3.1.5',
-                'NetFlow/v2.1.7 clash-verge Platform/android',
-                'NetFlow/v2.1.7 clash-verge Platform/macos',
-                'NetFlow/v2.1.7 clash-verge Platform/windows',
-                'NetFlow/v2.1.7 clash-verge Platform/linux'
-            ];
-
             // 🔒 【已修改：使用原生 in_array 严格模式】
             // 一字不差、大小写完全一致才能通过
-            $isAllowed = in_array($ua, $allowedUAs, true);
+            $isAllowed = ClientUa::isClientAllowed($ua);
 
 
             // ☠️ 如果不是白名单，强制清洗节点数据

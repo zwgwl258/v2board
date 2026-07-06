@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use App\Models\User;
+use App\Utils\ClientUa;
 use App\Utils\Helper;
 use Illuminate\Support\Facades\Cache;
 
@@ -39,20 +40,8 @@ class Client
         }
 
         // ✅ UA 白名单
-        $allowedUAs = [
-            'NetFlow/v2.1.6 clash-verge Platform/android',
-            'NetFlow/v2.1.6 clash-verge Platform/macos',
-            'NetFlow/v2.1.6 clash-verge Platform/windows',
-            'NetFlow/v2.1.6 clash-verge Platform/linux',
-            'clash-verge1YZqFeBpB8IAwJNBWah8sTgu8shfz8/v3.1.5',
-            'NetFlow/v2.1.7 clash-verge Platform/android',
-            'NetFlow/v2.1.7 clash-verge Platform/macos',
-            'NetFlow/v2.1.7 clash-verge Platform/windows',
-            'NetFlow/v2.1.7 clash-verge Platform/linux'
-        ];
-
         // 🔒 【已优化：全等匹配】必须一字不差、大小写完全一致才能通过
-        $isAllowed = in_array($ua, $allowedUAs, true);
+        $isAllowed = ClientUa::isClientAllowed($ua);
 
         // 💡 不在白名单的 UA，只记录日志，不再执行 abort(403) 阻断
         // 这样请求就可以流转到后面的控制器进行节点清洗

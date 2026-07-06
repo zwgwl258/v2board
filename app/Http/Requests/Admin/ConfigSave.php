@@ -88,6 +88,8 @@ class ConfigSave extends FormRequest
         'macos_download_url' => '',
         'android_version' => '',
         'android_download_url' => '',
+        'client_ua_ios' => 'nullable|string',
+        'client_ua' => 'nullable|string',
         // safe
         'email_whitelist_enable' => 'in:0,1',
         'email_whitelist_suffix' => 'nullable|array',
