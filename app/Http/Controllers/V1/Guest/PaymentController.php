@@ -4,6 +4,7 @@ namespace App\Http\Controllers\V1\Guest;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\User;
 use App\Services\OrderService;
 use App\Services\PaymentService;
 use App\Services\TelegramService;
@@ -32,16 +33,21 @@ class PaymentController extends Controller
         if (!$order) {
             abort(500, 'order is not found');
         }
-        if ($order->status !== 0) return true;
+
+        if (in_array($order->status, [1, 3, 4])) return true;
+
         $orderService = new OrderService($order);
         if (!$orderService->paid($callbackNo)) {
             return false;
         }
+
         $telegramService = new TelegramService();
+        $user = User::find($order->user_id);
         $message = sprintf(
-            "💰成功收款%s元\n———————————————\n订单号：%s",
+            "💰成功收款%s元\n———————————————\n订单号：%s\n用户邮箱：%s",
             $order->total_amount / 100,
-            $order->trade_no
+            $order->trade_no,
+            $user ? $user->email : '未知'
         );
         $telegramService->sendMessageWithAdmin($message);
         return true;
